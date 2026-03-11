@@ -1,4 +1,4 @@
-# Apache + PHP + MariaDB + SSL Installation Guide (Windows Server)
+# Apache + PHP + MariaDB + SSL + Domain Installation Guide (Windows Server)
 
 A complete step-by-step guide to install **Apache, PHP, MariaDB, and SSL** on **Windows Server 2016/2019/2022**.
 
@@ -17,6 +17,7 @@ This setup creates a secure **HTTPS web server environment** suitable for develo
   * Install PHP
   * Install MariaDB
   * Configure Apache + PHP
+  * Configure Domain (Virtual Host)
   * Enable SSL (HTTPS)
 * Verify Installation
 * Troubleshooting
@@ -50,6 +51,8 @@ Windows Server
 ```
 
 HTTPS support will be enabled using **SSL certificates**.
+
+Custom domain configuration**.
 
 ---
 
@@ -89,17 +92,6 @@ Example:
 ```
 php-8.x-Win32-vs16-x64.zip
 ```
-
----
-
-### Microsoft Visual C++ Redistributable
-
-Apache requires this runtime.
-
-https://aka.ms/vs/17/release/vc_redist.x64.exe
-
----
-
 ### MariaDB
 
 https://mariadb.org/download/
@@ -318,7 +310,7 @@ is running.
 ---
 
 # 6. Install SSL Certificate (Self-Signed)
-
+Method 1
 Open Command Prompt:
 
 ```
@@ -356,6 +348,54 @@ Common Name: localhost
 
 ```
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+```
+
+Method 2
+Add to system PATH:
+
+```
+C:\Apache24\bin
+C:\PHP
+```
+
+---
+
+### Set OpenSSL Config
+Open Command Prompt as Administrator and run:
+```
+set OPENSSL_CONF=C:\Apache24\conf\openssl.cnf
+```
+
+---
+
+### Generate Private Key & CSR
+
+```
+openssl req -config C:\Apache24\conf\openssl.cnf -new -out C:\Apache24\conf\server.csr -keyout C:\Apache24\conf\server.pem
+```
+
+Example information:
+
+```
+Country Name: MM
+State: Yangon
+Organization: Example Company
+Common Name: localhost
+```
+
+### Convert PEM to KEY
+
+```
+openssl rsa -in C:\Apache24\conf\server.pem -out C:\Apache24\conf\server.key
+```
+Enter the passphrase from the previous step.
+
+---
+
+### Generate Self-Signed Certificate
+
+```
+openssl x509 -req -signkey C:\Apache24\conf\server.key -days 1024 -in C:\Apache24\conf\server.csr -out C:\Apache24\conf\server.crt
 ```
 
 ---
@@ -425,6 +465,156 @@ You should see the **secure HTTPS site**.
 
 ---
 
+# 10. Configure Domain for Apache
+
+Instead of accessing your server using:
+
+```
+http://localhost
+```
+
+you can configure a **custom domain name** such as:
+
+```
+https://example.com
+```
+
+---
+
+# 10.1 Update DNS Record
+
+Log in to your **domain provider** (Cloudflare, GoDaddy, Namecheap, etc).
+
+Create an **A Record**:
+
+| Type | Name | Value            |
+| ---- | ---- | ---------------- |
+| A    | @    | SERVER_PUBLIC_IP |
+| A    | www  | SERVER_PUBLIC_IP |
+
+Example:
+
+```
+example.com → 192.168.1.10
+www.example.com → 192.168.1.10
+```
+
+---
+
+# 10.2 Configure Apache Virtual Host
+
+Open Apache configuration:
+
+```
+C:\Apache24\conf\extra\httpd-vhosts.conf
+```
+
+Add the following configuration:
+
+```
+<VirtualHost *:80>
+    ServerName example.com
+    ServerAlias www.example.com
+    DocumentRoot "C:/Apache24/htdocs"
+
+    <Directory "C:/Apache24/htdocs">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog "logs/example-error.log"
+    CustomLog "logs/example-access.log" common
+</VirtualHost>
+```
+
+---
+
+# 10.3 Enable Virtual Hosts
+
+Open:
+
+```
+C:\Apache24\conf\httpd.conf
+```
+
+Find this line:
+
+```
+#Include conf/extra/httpd-vhosts.conf
+```
+
+Remove `#`:
+
+```
+Include conf/extra/httpd-vhosts.conf
+```
+
+---
+
+# 10.4 Restart Apache
+
+Restart Apache service:
+
+```
+services.msc
+Restart Apache2.4
+```
+
+---
+
+# 10.5 Test Domain
+
+Open browser:
+
+```
+http://example.com
+```
+
+Your domain should now point to your Apache server.
+
+---
+
+# 11. Enable HTTPS for Domain
+
+Edit SSL configuration:
+
+```
+C:\Apache24\conf\extra\httpd-ssl.conf
+```
+
+Add your domain:
+
+```
+<VirtualHost *:443>
+    ServerName example.com
+    DocumentRoot "C:/Apache24/htdocs"
+
+    SSLEngine on
+    SSLCertificateFile "C:/Apache24/conf/server.crt"
+    SSLCertificateKeyFile "C:/Apache24/conf/server.key"
+
+    <Directory "C:/Apache24/htdocs">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Restart Apache again.
+
+---
+
+# 12. Test HTTPS Domain
+
+Open browser:
+
+```
+https://example.com
+```
+
+If SSL is configured correctly, your site will load securely.
+
+
 # Verify Installation
 
 Test the following:
@@ -434,7 +624,7 @@ Test the following:
 | Apache    | http://localhost             |
 | PHP       | http://localhost/phpinfo.php |
 | HTTPS     | https://localhost            |
-
+| Doamin    | https://youdmoain.com        |
 ---
 
 # Troubleshooting
@@ -445,6 +635,10 @@ Check error log:
 
 ```
 C:\Apache24\logs\error.log
+```
+   OR
+```
+Click Window -> Event Viewer
 ```
 
 ---
