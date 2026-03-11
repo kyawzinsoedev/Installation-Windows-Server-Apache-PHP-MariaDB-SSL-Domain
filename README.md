@@ -310,7 +310,15 @@ is running.
 ---
 
 # 6. Install SSL Certificate (Self-Signed)
-Method 1
+
+* Use Method 1 if you just need a quick self-signed certificate for localhost or learning purposes.
+
+* Use Method 2 if you want more control, security, or advanced configuration, such as handling passphrases or custom OpenSSL options.
+
+---
+
+### Method 1 ( Simple Key & CSR )
+
 Open Command Prompt:
 
 ```
@@ -349,8 +357,9 @@ Common Name: localhost
 ```
 openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 ```
+---
 
-Method 2
+### Method 2 ( Using OpenSSL Config File )
 Add to system PATH:
 
 ```
@@ -373,14 +382,18 @@ set OPENSSL_CONF=C:\Apache24\conf\openssl.cnf
 ```
 openssl req -config C:\Apache24\conf\openssl.cnf -new -out C:\Apache24\conf\server.csr -keyout C:\Apache24\conf\server.pem
 ```
-
+* You will be prompted to enter a passphrase for the key ( Don't Miss )
+  
 Example information:
 
 ```
 Country Name: MM
 State: Yangon
 Organization: Example Company
-Common Name: localhost
+Organization Unit Name: Example Unit Name
+Common Name: localhost or production
+Email: Company Eamil
+Optional Company Name: Company Name
 ```
 
 ### Convert PEM to KEY
@@ -408,7 +421,7 @@ Open:
 C:\Apache24\conf\httpd.conf
 ```
 
-Enable SSL modules:
+Enable SSL modules ( Remove # ):
 
 ```
 LoadModule ssl_module modules/mod_ssl.so
@@ -417,7 +430,7 @@ LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
 
 ---
 
-Enable SSL configuration:
+Enable SSL configuration ( Remove # ):
 
 ```
 Include conf/extra/httpd-ssl.conf
