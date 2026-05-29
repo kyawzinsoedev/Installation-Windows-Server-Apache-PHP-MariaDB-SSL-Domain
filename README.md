@@ -550,15 +550,13 @@ Open:
 C:\Apache24\conf\httpd.conf
 ```
 
-Find this line:
-
-```
-#Include conf/extra/httpd-vhosts.conf
-```
-
 Remove `#`:
 
 ```
+LoadModule ssl_module modules/mod_ssl.so
+LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule vhost_alias_module modules/mod_vhost_alias.so
+
 Include conf/extra/httpd-vhosts.conf
 ```
 
@@ -678,29 +676,6 @@ exists in the PHP directory.
 
 ---
 
-# Project Structure
-
-Recommended GitHub repository structure:
-
-```
-apache-php-ssl-installation
-│
-├── README.md
-├── configs
-│   ├── httpd.conf.example
-│   └── httpd-ssl.conf.example
-│
-├── images
-│   ├── apache-test.png
-│   ├── phpinfo.png
-│   └── https-test.png
-│
-└── scripts
-    └── ssl-generation.txt
-```
-
----
-
 # License
 
 This project documentation is provided for educational and internal deployment purposes.
@@ -712,6 +687,6 @@ This project documentation is provided for educational and internal deployment p
 Maintained by:
 
 ```
-Your Name
-Your Organization
+Kyaw Zin Soe
+Developer
 ```
