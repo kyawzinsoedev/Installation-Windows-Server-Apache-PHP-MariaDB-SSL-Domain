@@ -208,6 +208,11 @@ LoadModule php_module "c:/php/php8apache2_4.dll"
 AddHandler application/x-httpd-php .php
 PHPIniDir "C:/php"
 ```
+In this LoadModule php_module "c:/php/php8apache2_4.dll" will depend on your php version.
+
+Eg. If php version 8.4 => LoadModule php_module "c:/php/php8apache8_4.dll"
+
+And also need to check your PHP folder real path for PHPIniDir "C:/php".
 
 ---
 
